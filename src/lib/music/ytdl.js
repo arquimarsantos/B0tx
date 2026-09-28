@@ -13,7 +13,7 @@ const ROOT_DIR = path.resolve(__dirname, '../../..');
 const TMP_DIR = path.join(ROOT_DIR, 'src', 'tmp', 'music');
 const BIN_DIR = path.join(ROOT_DIR, 'src', 'bin');
 const YTDLP_PATH = path.join(BIN_DIR, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
-const COOKIES_PATH = existsSync(path.join(ROOT_DIR, 'cookies.txt'));
+const COOKIES_PATH = existsSync(path.join(ROOT_DIR, 'cookies.txt')) ? path.join(ROOT_DIR, 'cookies.txt') : '/etc/secrets/cookies.txt';
 
 const MAX_DURATION_SECONDS = 60 * 12;
 
@@ -262,7 +262,7 @@ function getBaseYtDlpArgs() {
         if (existsSync(COOKIES_PATH)) {
             args.push('--cookies', COOKIES_PATH);
         } else {
-            console.log('[ytdl] Cookies NÃO encontrados em:', COOKIES_PATH);
+            console.log('[ytdl] Cookies não foram encontrados.');
         }
     } catch (e) {
         console.error(e.message);
