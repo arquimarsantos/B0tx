@@ -277,7 +277,7 @@ async function connect() {
             if (!groupId?.endsWith('@g.us')) return;
             if (update.action && update.action !== 'created') return;
 
-            // ========== ANTIPAIS ==========
+            // ========== ANTIPAÍS ==========
             const anticountry = await getAnticountrySettings(groupId);
             if (anticountry.enabled && anticountry.codes.length > 0) {
                 const metadata = await sock.groupMetadata(groupId);
@@ -372,7 +372,7 @@ async function connect() {
             if (!groupId?.endsWith('@g.us')) return;
 
             if (update.action === 'add') {
-                // ========== ANTIPAIS ==========
+                // ========== ANTIPAíS ==========
                 const anticountry = await getAnticountrySettings(groupId);
                 if (anticountry.enabled && anticountry.codes.length > 0) {
                     const metadata = await sock.groupMetadata(groupId);
