@@ -22,6 +22,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+RUN mkdir -p /app/src/bin \
+    && curl -L \
+       https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp_linux \
+       -o /app/src/bin/yt-dlp \
+    && chmod 755 /app/src/bin/yt-dlp
+
 RUN mkdir -p /app/sessions /app/src/db /app/src/tmp \
     && chown -R appuser:appuser /app
 
