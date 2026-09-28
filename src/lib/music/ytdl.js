@@ -253,13 +253,17 @@ function getBaseYtDlpArgs() {
     if (ffmpegPath) {
         args.push('--ffmpeg-location', ffmpegPath);
     }
-
+    
     try {
-        if (fs.existsSync(COOKIES_PATH)) {
+        if (existsSync(COOKIES_PATH)) {
             args.push('--cookies', COOKIES_PATH);
             console.log('[ytdl] Cookies carregados de:', COOKIES_PATH);
+        } else {
+            console.log('[ytdl] Cookies NÃO encontrados em:', COOKIES_PATH);
         }
-    } catch {}
+    } catch (e) {
+        console.error('[ytdl] Erro ao verificar cookies:', e.message);
+    }
 
     return args;
 }
