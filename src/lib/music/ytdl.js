@@ -211,7 +211,7 @@ function getBaseYtDlpArgs() {
         '--js-runtimes',
         `node:${process.execPath}`,
         '-4',
-        '--extractor-args', 'youtube:player_client=web,mweb,tv,web_safari'
+        '--extractor-args', 'youtube:player_client=web,mweb,android'
     ];
 
     if (ffmpegPath) {
