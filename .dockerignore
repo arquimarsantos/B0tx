@@ -4,8 +4,6 @@ npm-debug.log*
 .gitignore
 .env
 .env.*
-sessions
-src/db
 src/tmp
 *.log
 Dockerfile
