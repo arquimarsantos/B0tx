@@ -130,6 +130,20 @@ async function downloadBinary(url, destination) {
     }
 }
 
+async function updateYtDlp() {
+    try {
+        console.log('[ytdl] Atualizando yt-dlp...');
+        const result = await runYtDlp(['-U']);
+        if (result.code === 0) {
+            console.log('[ytdl] yt-dlp atualizado com sucesso');
+        } else {
+            console.log('[ytdl] Falha ao atualizar yt-dlp:', result.stderr?.slice(0, 300));
+        }
+    } catch (e) {
+        console.error('[ytdl] Erro ao atualizar:', e.message);
+    }
+}
+
 async function ensureYtDlp() {
     if (ensureBinaryPromise) return ensureBinaryPromise;
 
@@ -164,6 +178,8 @@ async function ensureYtDlp() {
                 await fs.chmod(YTDLP_PATH, 0o755);
             } catch {}
         }
+
+        await updateYtDlp();
         
         return YTDLP_PATH;
     })();
@@ -173,20 +189,6 @@ async function ensureYtDlp() {
     } catch (error) {
         ensureBinaryPromise = null;
         throw error;
-    }
-}
-
-async function updateYtDlp() {
-    try {
-        console.log('[ytdl] Atualizando yt-dlp...');
-        const result = await runYtDlp(['-U']);
-        if (result.code === 0) {
-            console.log('[ytdl] yt-dlp atualizado com sucesso');
-        } else {
-            console.log('[ytdl] Falha ao atualizar yt-dlp:', result.stderr?.slice(0, 300));
-        }
-    } catch (e) {
-        console.error('[ytdl] Erro ao atualizar:', e.message);
     }
 }
 
