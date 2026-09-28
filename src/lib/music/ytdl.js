@@ -137,7 +137,7 @@ async function updateYtDlp() {
         if (Date.now() - lastUpdate < UPDATE_INTERVAL) {
             return;
         }
-
+        
         const downloadUrl = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux';
         const tempPath = `${YTDLP_PATH}.tmp`;
 
@@ -160,6 +160,8 @@ async function updateYtDlp() {
         await fs.writeFile(tempPath, buffer);
         await fs.rename(tempPath, YTDLP_PATH);
         await fs.chmod(YTDLP_PATH, 0o755);
+
+        lastUpdate = Date.now();
         
     } catch (e) {
         console.error(e.message);
