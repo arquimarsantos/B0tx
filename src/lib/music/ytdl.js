@@ -249,7 +249,9 @@ function getBaseYtDlpArgs() {
         '--no-playlist',
         '--newline',
         '--js-runtimes',
-        `node:${process.execPath}`
+        `node:${process.execPath}`,
+        '-4',
+        '--extractor-args', 'youtube:player_client=web,mweb,android'
     ];
 
     if (ffmpegPath) {
