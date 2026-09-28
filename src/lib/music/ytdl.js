@@ -13,7 +13,7 @@ const ROOT_DIR = path.resolve(__dirname, '../../..');
 const TMP_DIR = path.join(ROOT_DIR, 'src', 'tmp', 'music');
 const BIN_DIR = path.join(ROOT_DIR, 'src', 'bin');
 const YTDLP_PATH = path.join(BIN_DIR, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
-const COOKIES_PATH = existsSync(path.join(ROOT_DIR, 'cookies.txt')) ? path.join(ROOT_DIR, 'cookies.txt') : '/etc/secrets/cookies.txt';
+const COOKIES_PATH = existsSync(path.join(ROOT_DIR, 'cookies.txt'));
 
 const MAX_DURATION_SECONDS = 60 * 12;
 
@@ -30,6 +30,8 @@ const YTDLP_DOWNLOAD_URLS = {
 };
 
 let ensureBinaryPromise = null;
+let lastUpdate = 0;
+const UPDATE_INTERVAL = 12 * 60 * 60 * 1000;
 
 async function ensureDir(dir) {
     await fs.mkdir(dir, { recursive: true });
@@ -132,7 +134,9 @@ async function downloadBinary(url, destination) {
 
 async function updateYtDlp() {
     try {
-        console.log('[ytdl] Baixando versão mais recente do yt-dlp...');
+        if (Date.now() - lastUpdate < UPDATE_INTERVAL) {
+            return;
+        }
 
         const downloadUrl = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux';
         const tempPath = `${YTDLP_PATH}.tmp`;
@@ -149,18 +153,16 @@ async function updateYtDlp() {
         }
 
         const buffer = Buffer.from(await response.arrayBuffer());
-        if (buffer.length < 1000000) { // proteção contra arquivo vazio/quebrado
+        if (buffer.length < 1000000) {
             throw new Error('Arquivo baixado muito pequeno');
         }
 
         await fs.writeFile(tempPath, buffer);
         await fs.rename(tempPath, YTDLP_PATH);
         await fs.chmod(YTDLP_PATH, 0o755);
-
-        console.log('[ytdl] yt-dlp atualizado com sucesso');
+        
     } catch (e) {
-        console.error('[ytdl] Falha ao atualizar yt-dlp:', e.message);
-        // Continua com a versão antiga que já existe
+        console.error(e.message);
     }
 }
 
@@ -257,14 +259,13 @@ function getBaseYtDlpArgs() {
     try {
         if (existsSync(COOKIES_PATH)) {
             args.push('--cookies', COOKIES_PATH);
-            console.log('[ytdl] Cookies carregados de:', COOKIES_PATH);
         } else {
             console.log('[ytdl] Cookies NÃO encontrados em:', COOKIES_PATH);
         }
     } catch (e) {
-        console.error('[ytdl] Erro ao verificar cookies:', e.message);
+        console.error(e.message);
     }
-
+    
     return args;
 }
 
