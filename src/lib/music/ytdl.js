@@ -162,14 +162,7 @@ async function ensureYtDlp() {
                 await fs.chmod(YTDLP_PATH, 0o755);
             } catch {}
         }
-
-        // === FORÇA ATUALIZAÇÃO PARA A ÚLTIMA VERSÃO ===
-        try {
-            await runYtDlp(['--update-to', 'nightly', '--no-warnings']);
-        } catch (err) {
-            console.error('[yt-dlp] Falha ao atualizar (continuando mesmo assim):', err.message);
-        }
-
+        
         return YTDLP_PATH;
     })();
 
