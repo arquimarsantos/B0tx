@@ -120,7 +120,7 @@ export default {
     pfpMsg: () => `⚠️ Marque um membro ou responda uma mensagem dele para usar o comando.`,
     pfpErrorMsg: () => `⚠️ Não foi possível obter a foto de perfil deste membro.`,
     pingDescription: () => `Verificar a latência do bot`,
-    pingMsg: (latency, uptime) => `🏓 Pong!\n⚡ Latência: ${latency}ms\n⏱️ Tempo ativo: ${uptime}`,
+    pingMsg: (latency, uptime) => `🏓 Pong!\n⚡ Latência: ${latency}ms\n🕒 Tempo ativo: ${uptime}`,
     playDescription: () => `Baixa e envia músicas do YouTube`,
     playCaption: (title, author, timestamp, url) => `> 🎵 *${title}*\n\n> 👤 *Artista:* ${author}\n> 🕒 *Duração:* ${timestamp}\n> 🔗 *Link:* ${url}`,
     playMsg1: (prefix, cmd) => `⚠️ Use: ${prefix}${cmd} *[nome da música]* ou *[link do YouTube]*`,
