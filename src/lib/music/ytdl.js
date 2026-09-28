@@ -13,7 +13,7 @@ const ROOT_DIR = path.resolve(__dirname, '../../..');
 const TMP_DIR = path.join(ROOT_DIR, 'src', 'tmp', 'music');
 const BIN_DIR = path.join(ROOT_DIR, 'src', 'bin');
 const YTDLP_PATH = path.join(BIN_DIR, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
-const COOKIES_PATH = path.join(ROOT_DIR, 'cookies.txt') || '/etc/secrets/cookies.txt';
+const COOKIES_PATH = existsSync(path.join(ROOT_DIR, 'cookies.txt')) ? path.join(ROOT_DIR, 'cookies.txt') : '/etc/secrets/cookies.txt';
 
 const MAX_DURATION_SECONDS = 60 * 12;
 
