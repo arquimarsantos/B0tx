@@ -132,15 +132,35 @@ async function downloadBinary(url, destination) {
 
 async function updateYtDlp() {
     try {
-        console.log('[ytdl] Atualizando yt-dlp...');
-        const result = await runYtDlp(['-U']);
-        if (result.code === 0) {
-            console.log('[ytdl] yt-dlp atualizado com sucesso');
-        } else {
-            console.log('[ytdl] Falha ao atualizar yt-dlp:', result.stderr?.slice(0, 300));
+        console.log('[ytdl] Baixando versão mais recente do yt-dlp...');
+
+        const downloadUrl = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux';
+        const tempPath = `${YTDLP_PATH}.tmp`;
+
+        const response = await fetch(downloadUrl, {
+            redirect: 'follow',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
+
+        const buffer = Buffer.from(await response.arrayBuffer());
+        if (buffer.length < 1000000) { // proteção contra arquivo vazio/quebrado
+            throw new Error('Arquivo baixado muito pequeno');
+        }
+
+        await fs.writeFile(tempPath, buffer);
+        await fs.rename(tempPath, YTDLP_PATH);
+        await fs.chmod(YTDLP_PATH, 0o755);
+
+        console.log('[ytdl] yt-dlp atualizado com sucesso');
     } catch (e) {
-        console.error('[ytdl] Erro ao atualizar:', e.message);
+        console.error('[ytdl] Falha ao atualizar yt-dlp:', e.message);
+        // Continua com a versão antiga que já existe
     }
 }
 
