@@ -51,7 +51,7 @@ export default {
                 { quoted: infoMessage }
             );
         } catch (error) {
-            console.error(error);
+            //console.error(error);
             await sock.sendMessage(from, { react: { text: '❌', key: msg.key } });
 
             let errorText = t.playMsg4();
