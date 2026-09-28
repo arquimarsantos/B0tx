@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import { existsSync } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
@@ -12,6 +13,7 @@ const ROOT_DIR = path.resolve(__dirname, '../../..');
 const TMP_DIR = path.join(ROOT_DIR, 'src', 'tmp', 'music');
 const BIN_DIR = path.join(ROOT_DIR, 'src', 'bin');
 const YTDLP_PATH = path.join(BIN_DIR, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
+const COOKIES_PATH = path.join(ROOT_DIR, 'cookies.txt') || '/etc/secrets/cookies.txt';
 
 const MAX_DURATION_SECONDS = 60 * 12;
 
@@ -207,12 +209,21 @@ function getBaseYtDlpArgs() {
         '--no-playlist',
         '--newline',
         '--js-runtimes',
-        `node:${process.execPath}`
+        `node:${process.execPath}`,
+        '-4',
+        '--extractor-args', 'youtube:player_client=web,mweb,tv,web_safari'
     ];
 
     if (ffmpegPath) {
         args.push('--ffmpeg-location', ffmpegPath);
     }
+
+    try {
+        if (fs.existsSync(COOKIES_PATH)) {
+            args.push('--cookies', COOKIES_PATH);
+            console.log('[ytdl] Cookies carregados de:', COOKIES_PATH);
+        }
+    } catch {}
 
     return args;
 }
