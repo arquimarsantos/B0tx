@@ -1,4 +1,4 @@
-import { // github do whiskeysockets: https://github.com/whiskeysockets/Baileys
+import { // https://github.com/whiskeysockets/Baileys
     makeWASocket,
     DisconnectReason,
     downloadContentFromMessage,
