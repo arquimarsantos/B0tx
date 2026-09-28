@@ -162,6 +162,16 @@ async function ensureYtDlp() {
                 await fs.chmod(YTDLP_PATH, 0o755);
             } catch {}
         }
+
+        try {
+            const updateResult = await runYtDlp(['-U', '--no-warnings']);
+            
+            if (updateResult.stdout || updateResult.stderr) {
+                console.log('[yt-dlp] update:', updateResult.stdout || updateResult.stderr);
+            }
+        } catch (err) {
+            console.error('[yt-dlp] Falha ao atualizar (continuando mesmo assim):', err.message);
+        }
         
         return YTDLP_PATH;
     })();
@@ -207,7 +217,10 @@ function getBaseYtDlpArgs() {
         '--no-playlist',
         '--newline',
         '--js-runtimes',
-        `node:${process.execPath}`
+        `node:${process.execPath}`,
+        '--extractor-args', 'youtube:player_client=web,android,ios',
+        '--no-check-certificates',
+        '--geo-bypass'
     ];
 
     if (ffmpegPath) {
