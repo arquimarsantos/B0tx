@@ -176,6 +176,20 @@ async function ensureYtDlp() {
     }
 }
 
+async function updateYtDlp() {
+    try {
+        console.log('[ytdl] Atualizando yt-dlp...');
+        const result = await runYtDlp(['-U']);
+        if (result.code === 0) {
+            console.log('[ytdl] yt-dlp atualizado com sucesso');
+        } else {
+            console.log('[ytdl] Falha ao atualizar yt-dlp:', result.stderr?.slice(0, 300));
+        }
+    } catch (e) {
+        console.error('[ytdl] Erro ao atualizar:', e.message);
+    }
+}
+
 function runYtDlp(args, options = {}) {
     return new Promise((resolve, reject) => {
         const child = spawn(YTDLP_PATH, args, {
