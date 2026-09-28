@@ -165,13 +165,7 @@ async function ensureYtDlp() {
 
         // === FORÇA ATUALIZAÇÃO PARA A ÚLTIMA VERSÃO ===
         try {
-            const updateResult = await runYtDlp(['-U', '--no-warnings']);
-            // se quiser forçar nightly (mais atualizado ainda), descomente a linha abaixo:
-            // const updateResult = await runYtDlp(['--update-to', 'nightly', '--no-warnings']);
-            
-            if (updateResult.stdout || updateResult.stderr) {
-                // console.log('[yt-dlp] update:', updateResult.stdout || updateResult.stderr);
-            }
+            await runYtDlp(['--update-to', 'nightly', '--no-warnings']);
         } catch (err) {
             console.error('[yt-dlp] Falha ao atualizar (continuando mesmo assim):', err.message);
         }
