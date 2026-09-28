@@ -207,13 +207,7 @@ function getBaseYtDlpArgs() {
         '--no-playlist',
         '--newline',
         '--js-runtimes',
-        `node:${process.execPath}`,
-        '--extractor-args', 'youtube:player_client=web,android,ios',
-        '--no-check-certificates',
-        '--geo-bypass',
-        '--retries', '3',
-        '--fragment-retries', '3',
-        '--sleep-requests', '1'
+        `node:${process.execPath}`
     ];
 
     if (ffmpegPath) {
