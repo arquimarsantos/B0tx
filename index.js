@@ -101,7 +101,7 @@ if (cfg.connectSessionsWithDatabase || cfg.connectDatabaseWithMongo) {
     }
 }
 
-ensureYtDlpAndUpdate().catch(err => console.error('[ytdl] update no boot:', err.message));
+ensureYtDlpAndUpdate().catch(err => console.error(err.message));
 
 let nsfwModel = null;
 
