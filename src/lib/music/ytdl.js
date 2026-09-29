@@ -1,7 +1,5 @@
 import fs from 'fs/promises';
-import { existsSync, copyFileSync, chmodSync, createWriteStream } from 'fs';
-import { Readable } from 'stream';
-import { pipeline } from 'stream/promises';
+import { existsSync, copyFileSync, chmodSync } from 'fs';
 import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
@@ -156,6 +154,11 @@ async function downloadBinary(url, destination) {
     }
 }
 
+async function getYtDlpVersion() {
+    const result = await runYtDlp(['--version']);
+    return result.code === 0 ? result.stdout.trim() : null;
+}
+
 async function updateYtDlp(force = false) {
     if (updatePromise) return updatePromise;
 
@@ -166,39 +169,22 @@ async function updateYtDlp(force = false) {
     lastAttempt = now;
 
     updatePromise = (async () => {
-        const tempPath = `${YTDLP_PATH}.tmp`;
         try {
-            const downloadUrl = YTDLP_DOWNLOAD_URLS[process.platform]?.[process.arch];
-            if (!downloadUrl) throw new Error('Plataforma não suportada');
+            const before = await getYtDlpVersion();
 
-            const response = await fetch(downloadUrl, {
-                redirect: 'follow',
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                }
-            });
-
-            if (!response.ok || !response.body) {
-                throw new Error(`HTTP ${response.status}`);
+            const result = await runYtDlp(['-U']);
+            if (result.code !== 0) {
+                throw new Error(result.stderr.trim() || `código ${result.code}`);
             }
-
-            await pipeline(Readable.fromWeb(response.body), createWriteStream(tempPath));
-
-            const { size } = await fs.stat(tempPath);
-            if (size < 1_000_000) {
-                throw new Error('Arquivo baixado muito pequeno');
-            }
-
-            if (process.platform !== 'win32') {
-                await fs.chmod(tempPath, 0o755);
-            }
-            await fs.rename(tempPath, YTDLP_PATH);
 
             lastUpdate = Date.now();
-            return true;
+
+            const after = await getYtDlpVersion();
+            const updated = Boolean(before && after && before !== after);
+            
+            return updated;
         } catch (e) {
             console.error(e.message);
-            await fs.unlink(tempPath).catch(() => {});
             return false;
         } finally {
             updatePromise = null;
@@ -242,11 +228,6 @@ async function ensureYtDlp() {
                 await fs.chmod(YTDLP_PATH, 0o755);
             } catch {}
         }
-        
-        try {
-            const stat = await fs.stat(YTDLP_PATH);
-            lastUpdate = stat.mtimeMs;
-        } catch {}
         
         return YTDLP_PATH;
     })();
