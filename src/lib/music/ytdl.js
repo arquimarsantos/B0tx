@@ -569,7 +569,7 @@ const UPDATE_ON_ERROR_CODES = ['YTDLP_FAILED', 'YTDLP_ERROR'];
 export async function downloadMusic(query) {
     await ensureDir(TMP_DIR);
     await ensureYtDlp();
-    await updateYtDlp();
+    //await updateYtDlp();
 
     let video;
 
