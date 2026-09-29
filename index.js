@@ -20,6 +20,7 @@ import { MongoClient } from "mongodb";
 import { languages, translateLang } from './src/languages/total-languages.js';
 import { isImageNsfw, isVideoNsfw } from './src/lib/nsfw-check.js';
 import { useMongoDBAuthState } from "./src/lib/mongo-auth-state.js";
+import { ensureYtDlpAndUpdate } from './src/lib/music/ytdl.js';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { Boom } from "@hapi/boom";
 import * as nsfwjs from 'nsfwjs';
@@ -99,6 +100,8 @@ if (cfg.connectSessionsWithDatabase || cfg.connectDatabaseWithMongo) {
         process.exit(1);
     }
 }
+
+ensureYtDlpAndUpdate().catch(err => console.error('[ytdl] update no boot:', err.message));
 
 let nsfwModel = null;
 
