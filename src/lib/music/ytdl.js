@@ -159,6 +159,18 @@ async function getYtDlpVersion() {
     return result.code === 0 ? result.stdout.trim() : null;
 }
 
+async function getLatestVersion() {
+    const response = await fetch('https://github.com/yt-dlp/yt-dlp/releases/latest', {
+        method: 'HEAD',
+        redirect: 'manual',
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+
+    const location = response.headers.get('location') || '';
+    const match = location.match(/\/tag\/([^/?#]+)/);
+    return match ? match[1] : null;
+}
+
 async function updateYtDlp(force = false) {
     if (updatePromise) return updatePromise;
 
@@ -169,22 +181,35 @@ async function updateYtDlp(force = false) {
     lastAttempt = now;
 
     updatePromise = (async () => {
+        const tempPath = `${YTDLP_PATH}.tmp`;
         try {
-            const before = await getYtDlpVersion();
+            const current = await getYtDlpVersion();
+            const latest = await getLatestVersion();
 
-            const result = await runYtDlp(['-U']);
-            if (result.code !== 0) {
-                throw new Error(result.stderr.trim() || `código ${result.code}`);
-            }
+            if (!latest) throw new Error('Não foi possível descobrir a última versão.');
 
             lastUpdate = Date.now();
 
-            const after = await getYtDlpVersion();
-            const updated = Boolean(before && after && before !== after);
-            
-            return updated;
+            if (current === latest) {
+                console.log(`[ytdl] yt-dlp já está atualizado (${current}).`);
+                return false;
+            }
+
+            const downloadUrl = YTDLP_DOWNLOAD_URLS[process.platform]?.[process.arch];
+            if (!downloadUrl) throw new Error('Plataforma não suportada.');
+
+            await downloadBinary(downloadUrl, tempPath);
+
+            const { size } = await fs.stat(tempPath);
+            if (size < 1_000_000) throw new Error('Arquivo baixado muito pequeno.');
+
+            await fs.rename(tempPath, YTDLP_PATH);
+
+            console.log(`[ytdl] yt-dlp atualizado: ${current} -> ${latest}`);
+            return true;
         } catch (e) {
             console.error(e.message);
+            await fs.unlink(tempPath).catch(() => {});
             return false;
         } finally {
             updatePromise = null;
