@@ -36,7 +36,7 @@ let updatePromise = null;
 let lastUpdate = 0;
 let lastAttempt = 0;
 
-const UPDATE_INTERVAL = 12 * 60 * 60 * 1000;
+const UPDATE_INTERVAL = 24 * 60 * 60 * 1000;
 const MIN_RETRY_INTERVAL = 30 * 60 * 1000;
 
 function resolveCookiesPath() {
