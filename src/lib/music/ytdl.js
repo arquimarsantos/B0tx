@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
-import { existsSync } from 'fs';
+import { existsSync, copyFileSync, chmodSync } from 'fs';
+import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
@@ -13,7 +14,6 @@ const ROOT_DIR = path.resolve(__dirname, '../../..');
 const TMP_DIR = path.join(ROOT_DIR, 'src', 'tmp', 'music');
 const BIN_DIR = path.join(ROOT_DIR, 'src', 'bin');
 const YTDLP_PATH = path.join(BIN_DIR, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
-const COOKIES_PATH = existsSync(path.join(ROOT_DIR, 'cookies.txt')) ? path.join(ROOT_DIR, 'cookies.txt') : '/etc/secrets/cookies.txt';
 
 const MAX_DURATION_SECONDS = 60 * 12;
 
@@ -32,6 +32,24 @@ const YTDLP_DOWNLOAD_URLS = {
 let ensureBinaryPromise = null;
 let lastUpdate = 0;
 const UPDATE_INTERVAL = 12 * 60 * 60 * 1000;
+
+function resolveCookiesPath() {
+    const source = path.join(ROOT_DIR, 'yt-cookies.txt');
+    if (!existsSync(source)) return null;
+
+    const target = path.join(os.tmpdir(), 'ytdlp-cookies-runtime.txt');
+
+    try {
+        copyFileSync(source, target);
+        chmodSync(target, 0o600);
+        return target;
+    } catch (e) {
+        console.error('[ytdl] Falha ao preparar cookies:', e.message);
+        return source;
+    }
+}
+
+const COOKIES_PATH = resolveCookiesPath();
 
 async function ensureDir(dir) {
     await fs.mkdir(dir, { recursive: true });
@@ -259,7 +277,7 @@ function getBaseYtDlpArgs() {
     }
     
     try {
-        if (existsSync(COOKIES_PATH)) {
+        if (COOKIES_PATH && existsSync(COOKIES_PATH)) {
             args.push('--cookies', COOKIES_PATH);
         } else {
             console.log('[ytdl] Cookies não foram encontrados.');
