@@ -436,7 +436,7 @@ async function downloadAudio(videoId, outputPath) {
         '-f', 'bestaudio/best',
         '-x',
         '--audio-format', 'mp3',
-        '--audio-quality', '320K',
+        '--audio-quality', '128K',
         '--no-keep-video',
         '--no-overwrites',
         '-o', template,
