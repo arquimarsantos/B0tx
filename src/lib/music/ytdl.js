@@ -634,3 +634,8 @@ export async function removeMusicFile(filePath) {
         await fs.unlink(filePath);
     } catch {}
 }
+
+export async function ensureYtDlpAndUpdate() {
+    await ensureYtDlp();
+    await updateYtDlp(false);
+}
