@@ -1,5 +1,7 @@
 import fs from 'fs/promises';
-import { existsSync, copyFileSync, chmodSync } from 'fs';
+import { existsSync, copyFileSync, chmodSync, createWriteStream } from 'fs';
+import { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
 import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
@@ -30,8 +32,12 @@ const YTDLP_DOWNLOAD_URLS = {
 };
 
 let ensureBinaryPromise = null;
+let updatePromise = null;
 let lastUpdate = 0;
+let lastAttempt = 0;
+
 const UPDATE_INTERVAL = 12 * 60 * 60 * 1000;
+const MIN_RETRY_INTERVAL = 30 * 60 * 1000;
 
 function resolveCookiesPath() {
     const source = path.join(ROOT_DIR, 'yt-cookies.txt');
@@ -150,40 +156,56 @@ async function downloadBinary(url, destination) {
     }
 }
 
-async function updateYtDlp() {
-    try {
-        if (Date.now() - lastUpdate < UPDATE_INTERVAL) {
-            return;
-        }
-        
-        const downloadUrl = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux';
+async function updateYtDlp(force = false) {
+    if (updatePromise) return updatePromise;
+
+    const now = Date.now();
+    if (!force && now - lastUpdate < UPDATE_INTERVAL) return false;
+    if (now - lastAttempt < MIN_RETRY_INTERVAL) return false;
+
+    lastAttempt = now;
+
+    updatePromise = (async () => {
         const tempPath = `${YTDLP_PATH}.tmp`;
+        try {
+            const downloadUrl = YTDLP_DOWNLOAD_URLS[process.platform]?.[process.arch];
+            if (!downloadUrl) throw new Error('Plataforma não suportada');
 
-        const response = await fetch(downloadUrl, {
-            redirect: 'follow',
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            const response = await fetch(downloadUrl, {
+                redirect: 'follow',
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            });
+
+            if (!response.ok || !response.body) {
+                throw new Error(`HTTP ${response.status}`);
             }
-        });
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            await pipeline(Readable.fromWeb(response.body), createWriteStream(tempPath));
+
+            const { size } = await fs.stat(tempPath);
+            if (size < 1_000_000) {
+                throw new Error('Arquivo baixado muito pequeno');
+            }
+
+            if (process.platform !== 'win32') {
+                await fs.chmod(tempPath, 0o755);
+            }
+            await fs.rename(tempPath, YTDLP_PATH);
+
+            lastUpdate = Date.now();
+            return true;
+        } catch (e) {
+            console.error(e.message);
+            await fs.unlink(tempPath).catch(() => {});
+            return false;
+        } finally {
+            updatePromise = null;
         }
+    })();
 
-        const buffer = Buffer.from(await response.arrayBuffer());
-        if (buffer.length < 1000000) {
-            throw new Error('Arquivo baixado muito pequeno');
-        }
-
-        await fs.writeFile(tempPath, buffer);
-        await fs.rename(tempPath, YTDLP_PATH);
-        await fs.chmod(YTDLP_PATH, 0o755);
-
-        lastUpdate = Date.now();
-        
-    } catch (e) {
-        console.error(e.message);
-    }
+    return updatePromise;
 }
 
 async function ensureYtDlp() {
@@ -220,8 +242,11 @@ async function ensureYtDlp() {
                 await fs.chmod(YTDLP_PATH, 0o755);
             } catch {}
         }
-
-        await updateYtDlp();
+        
+        try {
+            const stat = await fs.stat(YTDLP_PATH);
+            lastUpdate = stat.mtimeMs;
+        } catch {}
         
         return YTDLP_PATH;
     })();
@@ -535,8 +560,12 @@ async function cleanupDownloadFiles(outputPath) {
     } catch {}
 }
 
+const UPDATE_ON_ERROR_CODES = ['YTDLP_FAILED', 'YTDLP_ERROR'];
+
 export async function downloadMusic(query) {
     await ensureDir(TMP_DIR);
+    await ensureYtDlp();
+    await updateYtDlp();
 
     let video;
 
@@ -551,9 +580,7 @@ export async function downloadMusic(query) {
     }
 
     if (video.seconds > MAX_DURATION_SECONDS) {
-        const error = new Error(
-            `Música muito longa (${Math.floor(video.seconds / 60)} min). Máximo: ${MAX_DURATION_SECONDS / 60} min.`
-        );
+        const error = new Error(`Música muito longa (${Math.floor(video.seconds / 60)} min). Máximo: ${MAX_DURATION_SECONDS / 60} min.`);
         error.code = 'TOO_LONG';
         throw error;
     }
@@ -561,7 +588,17 @@ export async function downloadMusic(query) {
     const outputPath = randomName('mp3');
 
     try {
-        await downloadAudio(video.id, outputPath);
+        try {
+            await downloadAudio(video.id, outputPath);
+        } catch (error) {
+            if (UPDATE_ON_ERROR_CODES.includes(error.code) && await updateYtDlp(true)) {
+                await cleanupDownloadFiles(outputPath);
+                await downloadAudio(video.id, outputPath);
+            } else {
+                throw error;
+            }
+        }
+
         await fs.access(outputPath);
         await writeTags(outputPath, video);
 
