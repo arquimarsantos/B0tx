@@ -431,6 +431,7 @@ async function downloadAudio(videoId, outputPath) {
     const args = [
         ...getBaseYtDlpArgs(),
         '--no-playlist',
+        '--external-downloader', 'aria2c',
         '-f', 'bestaudio/best',
         '-x',
         '--audio-format', 'mp3',
