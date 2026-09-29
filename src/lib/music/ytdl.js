@@ -298,9 +298,7 @@ function getBaseYtDlpArgs() {
         '--no-playlist',
         '--newline',
         '--js-runtimes',
-        `node:${process.execPath}`,
-        '-4',
-        '--extractor-args', 'youtube:player_client=web,mweb,android'
+        `node:${process.execPath}`
     ];
 
     if (ffmpegPath) {
@@ -436,7 +434,7 @@ async function downloadAudio(videoId, outputPath) {
         '-f', 'bestaudio/best',
         '-x',
         '--audio-format', 'mp3',
-        '--audio-quality', '128K',
+        '--audio-quality', '320K',
         '--no-keep-video',
         '--no-overwrites',
         '-o', template,
