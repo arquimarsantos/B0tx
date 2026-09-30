@@ -2,11 +2,11 @@ FROM node:22-bookworm-slim AS deps
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    make \
-    g++ \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+    aria2 \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --shell /bin/bash appuser
 
 COPY package.json package-lock.json* ./
 RUN npm install --omit=dev
