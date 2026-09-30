@@ -44,7 +44,7 @@ export default {
             await sock.sendMessage(
                 from,
                 {
-                    audio: await fs.readFile(musicPath),
+                    audio: { url: musicPath },
                     mimetype: 'audio/mpeg',
                     ptt: false
                 },
