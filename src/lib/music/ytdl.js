@@ -337,47 +337,6 @@ function normalizeMetadata(data) {
     };
 }
 
-async function searchAndGetInfo(query) {
-    await ensureYtDlp();
-
-    const cleanQuery = String(query || '').trim();
-    if (!cleanQuery) {
-        throw new Error('Nenhum resultado encontrado');
-    }
-
-    const searchUrl = `ytsearch1:${cleanQuery}`;
-
-    const args = [
-        ...getBaseYtDlpArgs(),
-        '--dump-single-json',
-        '--no-playlist',
-        searchUrl
-    ];
-
-    const result = await runYtDlp(args);
-
-    if (result.code !== 0) {
-        throw createYtDlpError(result.stderr, result.code);
-    }
-
-    let data;
-    try {
-        data = JSON.parse(
-            result.stdout.trim().split('\n').filter(Boolean).at(-1)
-        );
-    } catch {
-        throw new Error('Não foi possível interpretar a pesquisa do YouTube.');
-    }
-
-    const entry = data?.entries?.[0] || data;
-
-    if (!entry?.id) {
-        throw new Error('Nenhum resultado encontrado');
-    }
-
-    return normalizeMetadata(entry);
-}
-
 async function getVideoInfo(urlOrId) {
     await ensureYtDlp();
 
@@ -619,7 +578,11 @@ export async function downloadMusic(query) {
     if (isYTUrl(query)) {
         video = await getVideoInfo(query);
     } else {
-        video = await searchAndGetInfo(query);
+        const results = await search(query, 1);
+        if (!results.length) {
+            throw new Error('Nenhum resultado encontrado');
+        }
+        video = await getVideoInfo(results[0].id);
     }
 
     if (video.seconds > MAX_DURATION_SECONDS) {
