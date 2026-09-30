@@ -122,7 +122,7 @@ export default {
     pingDescription: () => `Verificar a latência do bot`,
     pingMsg: (latency, uptime) => `🏓 Pong!\n⚡ Latência: ${latency}ms\n🕒 Tempo ativo: ${uptime}`,
     playDescription: () => `Baixa e envia músicas do YouTube`,
-    playCaption: (title, author, timestamp, url) => `> 🎵 *${title}*\n\n> 👤 *Artista:* ${author}\n> 🕒 *Duração:* ${timestamp}\n> 🔗 *Link:* ${url}`,
+    playCaption: (title, author, timestamp, url) => `> 🎵 *${title}*\n\n> 👤 *Canal:* ${author}\n> 🕒 *Duração:* ${timestamp}\n> 🔗 *Link:* ${url}`,
     playMsg1: (prefix, cmd) => `⚠️ Use: ${prefix}${cmd} *[nome da música]* ou *[link do YouTube]*`,
     playMsg2: () => `⚠️ Apenas links do YouTube são permitidos.`,
     playMsg3: (query) => `🔍 Buscando: *${query}*`,
