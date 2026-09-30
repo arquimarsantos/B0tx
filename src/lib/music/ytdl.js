@@ -191,7 +191,7 @@ async function updateYtDlp(force = false) {
             lastUpdate = Date.now();
 
             if (current === latest) {
-                console.log(`[ytdl] yt-dlp já está atualizado (${current}).`);
+                //console.log(`[ytdl] yt-dlp já está atualizado (${current}).`);
                 return false;
             }
 
@@ -205,7 +205,7 @@ async function updateYtDlp(force = false) {
 
             await fs.rename(tempPath, YTDLP_PATH);
 
-            console.log(`[ytdl] yt-dlp atualizado: ${current} -> ${latest}`);
+            //console.log(`[ytdl] yt-dlp atualizado: ${current} -> ${latest}`);
             return true;
         } catch (e) {
             console.error(e.message);
@@ -308,8 +308,6 @@ function getBaseYtDlpArgs() {
     try {
         if (COOKIES_PATH && existsSync(COOKIES_PATH)) {
             args.push('--cookies', COOKIES_PATH);
-        } else {
-            console.log('[ytdl] Cookies não foram encontrados.');
         }
     } catch (e) {
         console.error(e.message);
