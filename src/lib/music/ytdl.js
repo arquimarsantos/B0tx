@@ -432,7 +432,6 @@ async function downloadAudio(videoId, outputPath) {
         ...getBaseYtDlpArgs(),
         '--no-playlist',
         '--external-downloader', 'aria2c',
-        '--external-downloader-args', 'aria2c:-x 16 -s 16 -k 1M --file-allocation=none --summary-interval=0',
         '-f', 'bestaudio/best',
         '-x',
         '--audio-format', 'mp3',
