@@ -9,7 +9,7 @@ import { runFFmpeg, getVideoDuration } from './ffmpeg.js';
 const TMP_DIR = './src/tmp/nsfw';
 const MAX_VIDEO_DURATION_FOR_CHECK = 120;
 const FRAME_COUNT = 5;
-const NSFW_THRESHOLD = 0.65;
+const NSFW_THRESHOLD = 0.80;
 
 async function ensureTmpDir() {
     await fs.mkdir(TMP_DIR, { recursive: true });
