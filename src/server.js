@@ -7,6 +7,8 @@ app.get('/', function (req, res) {
     res.send('Server online');
 });
 
+app.use(express.json());
+
 app.post("/reset-link", async (req, res) => {
     try {
         const { token, link } = req.body;
