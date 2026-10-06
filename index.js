@@ -265,10 +265,12 @@ async function connect() {
                     try {
                         await sock.groupRequestParticipantsUpdate(groupId, toReject, 'reject');
 
+						/*
                         for (const jid of toReject) {
                             const number = jid.split('@')[0].split(':')[0];
                             await sock.sendMessage(groupId, { text: t.anticountryRejectMsg(number), mentions: [jid] });
                         }
+						*/
                     } catch (err) {
                         console.error(err);
                     }
