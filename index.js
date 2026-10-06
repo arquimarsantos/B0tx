@@ -157,7 +157,7 @@ async function checkStatusAntilink(sock, msg) {
             const t = languages[currentLanguage] || languages.pt;
             const userNumber = sender.split('@')[0];
 
-            await sock.sendMessage(groupId, { text: t.antilinkStatusRemoveMsg(userNumber), mentions: [sender] });
+            //await sock.sendMessage(groupId, { text: t.antilinkStatusRemoveMsg(userNumber), mentions: [sender] });
             await sock.groupParticipantsUpdate(groupId, [sender], 'remove');
         }
     } catch (err) {
@@ -313,11 +313,12 @@ async function connect() {
 
                     try {
                         await sock.groupRequestParticipantsUpdate(groupId, toReject, 'reject');
-
+						/*
                         for (const jid of toReject) {
                             const number = jid.split('@')[0].split(':')[0];
                             await sock.sendMessage(groupId, { text: t.anticountryRejectMsg(number), mentions: [jid] });
                         }
+						*/
                     } catch (err) {
                         console.error(err);
                     }
@@ -397,7 +398,7 @@ async function connect() {
 
                             try {
                                 await sock.groupParticipantsUpdate(groupId, [participantJid], 'remove');
-                                await sock.sendMessage(groupId, { text: t.anticountryRemoveMsg(number, code) });
+                                //await sock.sendMessage(groupId, { text: t.anticountryRemoveMsg(number, code) });
                             } catch (err) {
                                 console.error(err.message);
                             }
@@ -514,14 +515,14 @@ async function connect() {
                             await sock.sendMessage(from, { delete: msg.key });
 
                             const count = await incrementWarning(from, sender);
-                            const userNumber = sender.split('@')[0];
+                            //const userNumber = sender.split('@')[0];
 
                             if (count >= 3) {
                                 await sock.groupParticipantsUpdate(from, [sender], 'remove');
                                 //await resetWarning(from, sender);
-                            } else {
+                            } /*else {
                                 await sock.sendMessage(from, { text: t.antilinkWarnMsg(userNumber, count), mentions: [sender] });
-                            }
+                            }*/
                             return;
                         }
                     }
@@ -577,15 +578,15 @@ async function connect() {
                                     await sock.sendMessage(from, { delete: msg.key });
 
                                     const count = await incrementAntiPornWarning(from, sender);
-                                    const userNumber = sender.split('@')[0];
+                                    //const userNumber = sender.split('@')[0];
 
                                     if (count >= 3) {
-                                        await sock.sendMessage(from, { text: t.antiPornBanMsg(userNumber), mentions: [sender] });
+                                        //await sock.sendMessage(from, { text: t.antiPornBanMsg(userNumber), mentions: [sender] });
                                         await sock.groupParticipantsUpdate(from, [sender], 'remove');
                                         //await resetAntiPornWarning(from, sender);
-                                    } else {
+                                    } /*else {
                                         await sock.sendMessage(from, { text: t.antiPornWarnMsg(userNumber, count), mentions: [sender] });
-                                    }
+                                    }*/
                                     return;
                                 }
                             } catch (err) {
@@ -611,8 +612,8 @@ async function connect() {
             await command.execute(sock, msg, from, t, commandName, sender, args);
         } catch (e) {
             console.error(e);
-            await sock.sendMessage(from, { react: { text: '❌', key: msg.key } });
-            await sock.sendMessage(from, { text: t.commandErrorMsg() }, { quoted: msg });
+            //await sock.sendMessage(from, { react: { text: '❌', key: msg.key } });
+            //await sock.sendMessage(from, { text: t.commandErrorMsg() }, { quoted: msg });
         }
     });
     sock.ev.on('creds.update', saveCreds);
