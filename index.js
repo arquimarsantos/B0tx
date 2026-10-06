@@ -224,55 +224,6 @@ async function connect() {
         console.log(translateLang['consoleMsg7'](code));
         console.log(translateLang['consoleMsg8']());
     }
-    /*
-    sock.ev.on('group.join-request', async (update) => {
-        try {
-            const groupId = update.id;
-
-            if (!groupId?.endsWith('@g.us')) {
-                return;
-            }
-
-            if (update.action && update.action !== 'created') return;
-
-            // ========== AUTOAPPROVE ==========
-            const autoApproveEnabled = await isAutoApproveEnabled(groupId);
-
-            if (!autoApproveEnabled) return;
-
-            const metadata = await sock.groupMetadata(groupId);
-
-            if (!isBotAdmin(metadata, sock.user.id)) return;
-
-            const participant =
-                update.participantPn ||
-                update.participant;
-
-            if (!participant) {
-                return;
-            }
-
-            const delay = [3000, 4000, 5000][
-                Math.floor(Math.random() * 3)
-            ];
-
-            setTimeout(async () => {
-                try {
-                    await sock.groupRequestParticipantsUpdate(
-                        groupId,
-                        [participant],
-                        'approve'
-                    );
-                } catch (err) {
-                    console.error(err.message);
-                }
-            }, delay);
-
-        } catch (err) {
-            console.error(err);
-        }
-    });
-    */
     sock.ev.on('group.join-request', async (update) => {
         try {
             const groupId = update.id;
@@ -313,12 +264,11 @@ async function connect() {
 
                     try {
                         await sock.groupRequestParticipantsUpdate(groupId, toReject, 'reject');
-						/*
+
                         for (const jid of toReject) {
                             const number = jid.split('@')[0].split(':')[0];
                             await sock.sendMessage(groupId, { text: t.anticountryRejectMsg(number), mentions: [jid] });
                         }
-						*/
                     } catch (err) {
                         console.error(err);
                     }
@@ -327,6 +277,22 @@ async function connect() {
             }
 
             // ========== AUTOAPROVAR ==========
+            if (!global.approvalQueues) {
+                global.approvalQueues = new Map();
+            }
+
+            const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+            const randomDelay = (min, max) => {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            };
+
+            const normalizeJid = (jid) => {
+                if (!jid) return null;
+
+                return jid.replace(/:\d+(?=@)/, '');
+            };
+
             const autoApproveEnabled = await isAutoApproveEnabled(groupId);
             if (!autoApproveEnabled) return;
 
@@ -341,30 +307,87 @@ async function connect() {
                 participantsToApprove.push(update.participant);
             }
 
-            try {
-                const pending = await sock.groupRequestParticipantsList(groupId);
-                if (Array.isArray(pending) && pending.length > 0) {
-                    const pendingJids = pending
-                        .map(p => p.jid || p.participant || p.id)
-                        .filter(Boolean);
+            const pending = await sock.groupRequestParticipantsList(groupId);
 
-                    participantsToApprove = [...new Set([...participantsToApprove, ...pendingJids])];
-                }
-            } catch (err) {
-                console.error(err);
+            if (Array.isArray(pending) && pending.length > 0) {
+                const pendingJids = pending
+                    .map(p => p.jid || p.participant || p.id)
+                    .filter(Boolean);
+
+                participantsToApprove = [
+                    ...new Set([
+                        ...participantsToApprove,
+                        ...pendingJids
+                    ])
+                ];
             }
 
             if (participantsToApprove.length === 0) return;
 
-            const delay = [3000, 4000, 5000][Math.floor(Math.random() * 3)];
+            participantsToApprove = [
+                ...new Map(
+                    participantsToApprove.map(jid => [normalizeJid(jid), jid])
+                ).values()
+            ];
 
-            setTimeout(async () => {
-                try {
-                    await sock.groupRequestParticipantsUpdate(groupId, participantsToApprove, 'approve');
-                } catch (err) {
-                    console.error(err);
-                }
-            }, delay);
+            const previousQueue = global.approvalQueues.get(groupId) || Promise.resolve();
+
+            const currentQueue = previousQueue
+                .catch(() => {})
+                .then(async () => {
+
+                    for (const jid of participantsToApprove) {
+
+                        const delay = randomDelay(8000, 15000);
+
+                        await sleep(delay);
+
+                        try {
+                            let pendingJids = [];
+                            
+                            const pending = await sock.groupRequestParticipantsList(groupId);
+
+                            if (Array.isArray(pending)) {
+                                pendingJids = pending
+                                    .map(p => p.jid || p.participant || p.id)
+                                    .filter(Boolean);
+                            }
+
+                            const targetNormalized = normalizeJid(jid);
+
+                            const realPendingJid = pendingJids.find(
+                                pendingJid =>
+                                    normalizeJid(pendingJid) === targetNormalized
+                            );
+
+                            if (!realPendingJid) {
+                                continue;
+                            }
+
+                            const freshMetadata = await sock.groupMetadata(groupId);
+
+                            if (!isBotAdmin(freshMetadata, sock.user.id)) {
+                                break;
+                            }
+
+                            await sock.groupRequestParticipantsUpdate(groupId, [realPendingJid], 'approve');
+
+                        } catch (err) {
+                            console.error(err);
+                            await sleep(randomDelay(5000, 10000));
+                        }
+                    }
+                });
+
+            global.approvalQueues.set(groupId, currentQueue);
+
+            currentQueue
+                .finally(() => {
+                    if (global.approvalQueues.get(groupId) === currentQueue) {
+                        global.approvalQueues.delete(groupId);
+                    }
+                })
+                .catch(() => {});
 
         } catch (err) {
             console.error(err);
