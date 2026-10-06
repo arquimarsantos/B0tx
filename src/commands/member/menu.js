@@ -3,6 +3,7 @@ import { cfg } from "../../config.js";
 export default {
     name: 'menu',
     async execute(sock, msg, from, t) {
+        return;
         await sock.sendMessage(from, { react: { text: '🤖', key: msg.key }});
         const menuImages = [
             './src/media/menu1.jpeg',
