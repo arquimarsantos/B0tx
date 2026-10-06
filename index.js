@@ -309,19 +309,23 @@ async function connect() {
                 participantsToApprove.push(update.participant);
             }
 
-            const pending = await sock.groupRequestParticipantsList(groupId);
-
-            if (Array.isArray(pending) && pending.length > 0) {
-                const pendingJids = pending
-                    .map(p => p.jid || p.participant || p.id)
-                    .filter(Boolean);
-
-                participantsToApprove = [
-                    ...new Set([
-                        ...participantsToApprove,
-                        ...pendingJids
-                    ])
-                ];
+			try {
+	            const pending = await sock.groupRequestParticipantsList(groupId);
+	
+	            if (Array.isArray(pending) && pending.length > 0) {
+	                const pendingJids = pending
+	                    .map(p => p.jid || p.participant || p.id)
+	                    .filter(Boolean);
+	
+	                participantsToApprove = [
+	                    ...new Set([
+	                        ...participantsToApprove,
+	                        ...pendingJids
+	                    ])
+	                ];
+	            }
+			} catch (err) {
+                console.error(err);
             }
 
             if (participantsToApprove.length === 0) return;
