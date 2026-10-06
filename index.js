@@ -424,8 +424,10 @@ async function connect() {
 
                         if (isGroupAdmin(metadata, participantJid)) continue;
                         if (matchesCountryCode(phone, anticountry.codes) || matchesCountryCode(participantJid, anticountry.codes)) {
+							/*
                             const number = (phone || participantJid).split('@')[0].split(':')[0];
                             const code = anticountry.codes.find(c => number.startsWith(c)) || '?';
+							*/
 
                             try {
                                 await sock.groupParticipantsUpdate(groupId, [participantJid], 'remove');
