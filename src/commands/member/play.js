@@ -10,6 +10,7 @@ export default {
     name: 'play',
     aliases: ['song', 'musica', 'msc', 'cancion', 'p'],
     async execute(sock, msg, from, t, command, sender, args) {
+        return;
         const query = args.join(' ').trim();
 
         if (!query) {
