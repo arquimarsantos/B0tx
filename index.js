@@ -259,8 +259,10 @@ async function connect() {
                 }
 
                 if (toReject.length > 0) {
+					/*
                     const currentLanguage = await getLanguage(groupId);
                     const t = languages[currentLanguage] || languages.pt;
+					*/
 
                     try {
                         await sock.groupRequestParticipantsUpdate(groupId, toReject, 'reject');
