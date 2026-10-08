@@ -326,8 +326,7 @@ async function connect() {
 	                    ])
 	                ];
 	            }
-			} catch (err) {
-                console.error(err);
+			} catch () {
             }
 
             if (participantsToApprove.length === 0) return;
