@@ -249,9 +249,7 @@ async function connect() {
                             .filter(Boolean);
                         participants = [...new Set([...participants, ...pendingJids])];
                     }
-                } catch (e) {
-					console.error(e);
-				}
+                } catch {}
 
                 const toReject = [];
                 for (const jid of participants) {
@@ -328,9 +326,7 @@ async function connect() {
 						])
 					];
 				}
-			} catch (e) {
-				console.error(e);
-			}
+			} catch {}
 
             if (participantsToApprove.length === 0) return;
 
