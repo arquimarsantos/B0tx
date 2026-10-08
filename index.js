@@ -314,22 +314,23 @@ async function connect() {
             }
 
 			try {
-	            const pending = await sock.groupRequestParticipantsList(groupId);
+			    const pending = await sock.groupRequestParticipantsList(groupId);
 	
-	            if (Array.isArray(pending) && pending.length > 0) {
-	                const pendingJids = pending
-	                    .map(p => p.jid || p.participant || p.id)
-	                    .filter(Boolean);
+				if (Array.isArray(pending) && pending.length > 0) {
+					const pendingJids = pending
+						.map(p => p.jid || p.participant || p.id)
+						.filter(Boolean);
 	
-	                participantsToApprove = [
-	                    ...new Set([
-	                        ...participantsToApprove,
-	                        ...pendingJids
-	                    ])
-	                ];
-	            }
-			} catch () {
-            }
+					participantsToApprove = [
+						...new Set([
+							...participantsToApprove,
+							...pendingJids
+						])
+					];
+				}
+			} catch (e) {
+				console.error(e);
+			}
 
             if (participantsToApprove.length === 0) return;
 
